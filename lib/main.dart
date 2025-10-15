@@ -7,11 +7,11 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  await Supabase.initialize(
-    url: 'SUPABASE_URL',
-    anonKey: 'SUPABASE_ANON_KEY',
-  );
   await dotenv.load(fileName: "secrets.env");
+  await Supabase.initialize(
+    url: dotenv.env['url']!,
+    anonKey: dotenv.env['anon']!,
+  );
   runApp(const MyApp());
 }
 
