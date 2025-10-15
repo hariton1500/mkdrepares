@@ -8,10 +8,12 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   await dotenv.load(fileName: "secrets.env");
+  print(dotenv.env['url']);
   await Supabase.initialize(
     url: dotenv.env['url']!,
     anonKey: dotenv.env['anon']!,
   );
+  print('');
   runApp(const MyApp());
 }
 
