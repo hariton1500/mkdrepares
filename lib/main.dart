@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:mkdrepares/Pages/repairs.dart';
 import 'package:mkdrepares/globals.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -10,6 +11,7 @@ void main() async {
     url: 'SUPABASE_URL',
     anonKey: 'SUPABASE_ANON_KEY',
   );
+  await dotenv.load(fileName: "secrets.env");
   runApp(const MyApp());
 }
 
