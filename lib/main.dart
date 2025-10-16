@@ -59,7 +59,7 @@ class _MyHomePageState extends State<MyHomePage> {
               padding: const EdgeInsets.all(30.0),
               child: TextField(
                 onChanged: (value) => login = value,
-                style: Theme.of(context).textTheme.headlineMedium,
+                //style: Theme.of(context).textTheme.headlineMedium,
               ),
             ),
             ElevatedButton(onPressed: () {

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:mkdrepares/Pages/addrepaire.dart';
+import 'package:mkdrepares/Pages/addrepair.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 class Repairs extends StatefulWidget {
@@ -31,9 +31,12 @@ class _RepairsState extends State<Repairs> {
       appBar: AppBar(
         title: Text('Ремонты:'),
       ),
-      floatingActionButton: FloatingActionButton(onPressed: () {
-        Navigator.of(context).push(MaterialPageRoute(builder: (context) => AddRepaire()));
-      }),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          Navigator.of(context).push(MaterialPageRoute(builder: (context) => AddRepair(mkd: selectedMkd, street: selectedStreet,)));
+        },
+        child: Text('Создать ремонт МКД'),
+      ),
       body: SafeArea(
         child: Column(
           children: [
@@ -76,7 +79,7 @@ class _RepairsState extends State<Repairs> {
                       );
                     }
                     final mkds = snapshot.data!;
-                    print('after setstate mkds:\n$mkds');
+                    //print('after setstate mkds:\n$mkds');
 
                     return DropdownButton<Map<String, dynamic>>(
                       value: selectedMkd.isEmpty ? null : selectedMkd,
