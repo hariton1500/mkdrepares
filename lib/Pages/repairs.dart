@@ -20,10 +20,12 @@ class _RepairsState extends State<Repairs> {
   PostgrestFilterBuilder<List<Map<String, dynamic>>> futureMkd = Supabase.instance.client.from('mkd').select();
 
   Map<String, dynamic> selectedMkd = {};
+  List<Map<String, dynamic>>mkds = [];
 
   @override
   void initState() {
     _futureStreets.then((e){print(e);});
+    futureMkd.then((f) => mkds = f);
     super.initState();
   }
   
@@ -50,22 +52,41 @@ class _RepairsState extends State<Repairs> {
                       );
                     }
                     final streets = snapshot.data!;
-                    return DropdownButton<Map<String, dynamic>>(
-                      value: selectedStreet.isEmpty ? null : selectedStreet,
-                      hint: Text('Выбор улицы'),
-                      items: streets.map((street) => DropdownMenuItem<Map<String, dynamic>>(
-                        value: street,
-                        child: Text(street['name'])
-                      )).toList(),
-                      onChanged: (e) {
-                        setState(() {
-                          selectedStreet = e!;
-                          //futureMkd = futureMkd.filter('street_id', 'eq', e['id']);
-                        });
-                      }
+                    return Row(
+                      children: [
+                        DropdownButton<Map<String, dynamic>>(
+                          value: selectedStreet.isEmpty ? null : selectedStreet,
+                          hint: Text('Выбор улицы'),
+                          items: streets.map((street) => DropdownMenuItem<Map<String, dynamic>>(
+                            value: street,
+                            child: Text(street['name'])
+                          )).toList(),
+                          onChanged: (e) {
+                            setState(() {
+                              selectedStreet = e!;
+                              //futureMkd = futureMkd.filter('street_id', 'eq', e['id']);
+                            });
+                          }
+                        ),
+                        DropdownButton<Map<String, dynamic>>(
+                          value: selectedMkd.isEmpty ? null : selectedMkd,
+                          hint: Text('Выбор дома'),
+                          items: mkds.map((mkd) => DropdownMenuItem<Map<String, dynamic>>(
+                            value: mkd,
+                            child: Text(mkd['number'])
+                          )).toList(),
+                          onChanged: (e) {
+                            setState(() {
+                              selectedMkd = e!;
+                            });
+                          }
+                        )
+                      ],
                     );
                   }
                 ),
+                
+                /*
                 FutureBuilder(
                   future: futureMkd.filter('street_id', 'eq', selectedStreet['id']),
                   builder: (context, snapshot) {
@@ -75,6 +96,8 @@ class _RepairsState extends State<Repairs> {
                       );
                     }
                     final mkds = snapshot.data!;
+                    print('after setstate mkds:\n$mkds');
+
                     return DropdownButton<Map<String, dynamic>>(
                       value: selectedMkd.isEmpty ? null : selectedMkd,
                       hint: Text('Выбор дома'),
@@ -89,7 +112,7 @@ class _RepairsState extends State<Repairs> {
                       }
                     );
                   }
-                )
+                )*/
               ],
             )
           ],
