@@ -11,9 +11,7 @@ class Repairs extends StatefulWidget {
 
 class _RepairsState extends State<Repairs> {
   
-  final _futureStreets = Supabase.instance.client
-    .from('streets')
-    .select();
+  final _futureStreets = Supabase.instance.client.from('streets').select();
   
   Map<String, dynamic> selectedStreet = {};
   Map<String, dynamic> selectedMkd = {};
@@ -22,7 +20,7 @@ class _RepairsState extends State<Repairs> {
 
   @override
   void initState() {
-    _futureStreets.then((e){print(e);});
+    //_futureStreets = sb.from('streets').select();
     //futureMkd.then((f) => mkds = f);
     super.initState();
   }
@@ -61,7 +59,6 @@ class _RepairsState extends State<Repairs> {
                         setState(() {
                           selectedMkd = {};
                           selectedStreet = e!;
-                          //futureMkd = futureMkd.filter('street_id', 'eq', e['id']);
                         });
                         _fMkd = sb.from('mkd').select().eq('street_id', selectedStreet['id']);
                       }
