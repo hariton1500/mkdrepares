@@ -31,11 +31,12 @@ class _RepairsState extends State<Repairs> {
       appBar: AppBar(
         title: Text('Ремонты:'),
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: selectedStreet.isNotEmpty && selectedMkd.isNotEmpty ? () {
           Navigator.of(context).push(MaterialPageRoute(builder: (context) => AddRepair(mkd: selectedMkd, street: selectedStreet,)));
-        },
-        child: Text('Создать ремонт МКД'),
+        } : null,
+        label: Text('Создать ремонт МКД'),
+        icon: Icon(Icons.add),
       ),
       body: SafeArea(
         child: Column(
