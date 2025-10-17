@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:mkdrepares/Pages/addrepair.dart';
+import 'package:mkdrepares/Widgets/all.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 class Repairs extends StatefulWidget {
@@ -18,10 +19,15 @@ class _RepairsState extends State<Repairs> {
   var sb = Supabase.instance.client;
   late PostgrestFilterBuilder<List<Map<String, dynamic>>> _fMkd;
 
+  int showStatus = -1;
+  late PostgrestFilterBuilder<List<Map<String, dynamic>>> repairs;
+  final _fStatuses = Supabase.instance.client.from('status').select();
+
   @override
   void initState() {
     //_futureStreets = sb.from('streets').select();
     //futureMkd.then((f) => mkds = f);
+    //repairs = sb.from('repairs').select().eq('status_id', showStatus);
     super.initState();
   }
   
@@ -97,8 +103,69 @@ class _RepairsState extends State<Repairs> {
                       }
                     );
                   }
-                )
+                ),
               ],
+            ),
+            FutureBuilder(
+              future: _fStatuses,
+              builder: (context, snapshot) {
+                if (!snapshot.hasData) return Container();
+                final statuses = snapshot.data!;
+                return Wrap(
+                  spacing: 10,
+                  children: statuses.map((status) => InkWell(
+                    onTap: () {
+                      setState(() {
+                        showStatus = status['id'];
+                        print('new showStatus: $showStatus');
+                        repairs = sb.from('repairs').select().eq('status_id', showStatus);
+                      });
+                    },
+                    child: Text(status['name']),
+                  )).toList(),
+                );
+              }
+            ),
+            if (showStatus > 0) FutureBuilder(
+              future: repairs,
+              builder: (context, snapshot) {
+                if (!snapshot.hasData) return Container();
+                final showRepairs = snapshot.data!;
+                return Table(
+                  children: [TableRow(
+                    children: [
+                      Text('Адрес:'),
+                      Text('Статус:'),
+                      Text('Коментарий автора:'),
+                    ]
+                  ),
+                  ...showRepairs.map((repair) {
+                    final _fpics = Supabase.instance.client.from('pictures').select().eq('repair_id', repair['id']);
+                    return TableRow(
+                      children: [
+                        showMkdById(repair['mkd_id']),
+                        showStatusNameById(repair['status_id']),
+                        Wrap(
+                          children: [
+                            Text(repair['creater_comment'].toString()),
+                            FutureBuilder(
+                              future: _fpics,
+                              builder: (context, snapshot) {
+                                if (!snapshot.hasData) return Container();
+                                final pics = snapshot.data!;
+                                final fImage = Supabase.instance.client.storage.from('pictures').url;
+                                return Column(
+                                  children: pics.map((pic) => Image.network('https://fhwzycuydrlxglwfzoku.supabase.co/storage/v1/object/sign/pictures/${pic['url']}?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV80ZmY0YmU0Yy1iYWQ3LTQ4YWMtOWRkZS02MmFhYjc4MGJkODIiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJwaWN0dXJlcy8xNzYwNjUzMTQ1MDk4IiwiaWF0IjoxNzYwNjkyNDY3LCJleHAiOjE3OTIyMjg0Njd9.i7oQTGG7mKpwjFi8Ae9xc8BYw-mq0O6oVAXE0i8SsRE')).toList(),
+                                );
+                              }
+                            )
+                          ],
+                        )
+                      ]
+                    );
+                  }).toList()],
+                );
+              },
             )
           ],
         )
