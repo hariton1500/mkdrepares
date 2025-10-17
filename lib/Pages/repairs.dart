@@ -175,12 +175,24 @@ class _RepairsState extends State<Repairs> {
                               )
                             ],
                           ),
-                          Container(),
-                          Container(),
-                          Container()
+                          Column(
+                            children: [
+                              Text(repair['reclamation'] ?? ''),
+                            ],
+                          ),
+                          Column(
+                            children: [
+                              Text(repair['actor'] ?? '')
+                            ],
+                          ),
+                          Column(
+                            children: [
+                              Text(repair['actor_comment'] ?? ''),
+                            ],
+                          )
                         ]
                       );
-                    }).toList()],
+                    })],
                   );
                 },
               )
