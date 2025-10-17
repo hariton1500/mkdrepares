@@ -37,9 +37,10 @@ class _AddRepaireState extends State<AddRepair> {
             print('repaire created:\n$repair');
             for (var image in images) {
               String path = DateTime.now().millisecondsSinceEpoch.toString();
-              var result = await storage.uploadBinary(path, image.bytes!);
+              var result = await storage.uploadBinary(path, image.bytes!, fileOptions: FileOptions(upsert: true));
               print('result: $result');
-              final data = await supabase.from('pictures').insert({'url': path, 'repair_id': repair['id']}).select();
+              final url = supabase.storage.from('pictures').getPublicUrl(path);
+              final data = await supabase.from('pictures').insert({'url': url, 'repair_id': repair['id']}).select();
               print('pictures created:\n$data');
             }
           }, label: Text('Сохранить'), icon: Icon(Icons.save),)
@@ -48,7 +49,7 @@ class _AddRepaireState extends State<AddRepair> {
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () async {
           //final pickedFile = await picker.pickImage(source: ImageSource.gallery, imageQuality: 80);
-          final pickedFile = await FilePicker.platform.pickFiles(type: FileType.image);
+          final pickedFile = await FilePicker.platform.pickFiles(type: FileType.image, withData: true);
           setState(() {
             if (pickedFile != null) {
               images.addAll(pickedFile.files);
@@ -76,7 +77,16 @@ class _AddRepaireState extends State<AddRepair> {
               Wrap(
                 spacing: 10,
                 runSpacing: 10,
-                children: images.map((image) => SizedBox(width: 100, height: 100, child: Image.memory(Uint8List.fromList(image.bytes!), fit: BoxFit.cover,))).toList(),
+                children: images.map((image) => SizedBox(width: 200, height: 300, child: Stack(
+                  alignment: AlignmentDirectional.topEnd,
+                  children: [
+                    Image.memory(Uint8List.fromList(image.bytes!), fit: BoxFit.cover,),
+                    IconButton(onPressed: () {
+                      setState(() {
+                        images.remove(image);
+                      });
+                    }, icon: Icon(Icons.delete_forever, color: Colors.white,))
+                  ]))).toList(),
               )
             ]
           ),
