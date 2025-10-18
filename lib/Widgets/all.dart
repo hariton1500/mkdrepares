@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 Widget showStatusNameById(int id) {
@@ -40,4 +39,19 @@ Widget showMkdById(int id) {
 
 Widget linkText(String text) {
   return Text(text, style: TextStyle(color: Colors.blue, fontStyle: FontStyle.italic));
+}
+
+Widget showSmallPicsFromStorage({required Future<List<Map<String, dynamic>>>? future}) {
+  return FutureBuilder(
+    future: future,
+    builder: (context, snapshot) {
+      if (!snapshot.hasData) return Text('');
+      final data = snapshot.data!;
+      return Wrap(
+        spacing: 10,
+        children: data.map((pic) => Image.network('${pic['url']}', width: 100, height: 100, fit: BoxFit.cover,)).toList(),
+      );
+    }
+  );
+
 }

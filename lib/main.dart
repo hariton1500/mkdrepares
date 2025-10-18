@@ -64,6 +64,7 @@ class _MyHomePageState extends State<MyHomePage> {
             ),
             ElevatedButton(onPressed: () {
               if (users.any((user) => user['login'] == login)) {
+                activeUser = users.firstWhere((u) => u['login'] == login);
                 Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (context) => Repairs()));
               } else {
                 ScaffoldMessenger.of(context).showSnackBar(

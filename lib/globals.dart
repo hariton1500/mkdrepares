@@ -12,3 +12,5 @@ List<Map<String, dynamic>> users = [
     'level': 0
   }
 ];
+
+Map<String, dynamic> activeUser = {};

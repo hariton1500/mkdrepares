@@ -17,6 +17,7 @@ class _ReclamationState extends State<Reclamation> {
   bool saving = false;
   TextEditingController? _controller;
   List<PlatformFile> images = [];
+  final supabase = Supabase.instance.client;
 
   @override
   void initState() {
@@ -26,13 +27,13 @@ class _ReclamationState extends State<Reclamation> {
   
   @override
   Widget build(BuildContext context) {
-    final fpics = Supabase.instance.client.from('pictures').select().eq('repair_id', widget.repair['id']).eq('reclamation_flag', 1);
+    final fpics = supabase.from('pictures').select().eq('repair_id', widget.repair['id']).eq('reclamation_flag', 1);
     return Scaffold(
       appBar: AppBar(
         title: Text('Создание / редактирование рекламации'),
         actions: [
           InkWell(
-            child: saving ? CircularProgressIndicator.adaptive() : linkText('Сохранить'),
+            child: saving ? Text('Идет передача данных...') : linkText('Сохранить'),
             onTap: () async {
               setState(() {
                 saving = true;
@@ -41,12 +42,12 @@ class _ReclamationState extends State<Reclamation> {
               for (var image in images) {
                 final path = DateTime.now().microsecondsSinceEpoch.toString();
                 print('uploading images...');
-                await Supabase.instance.client.storage.from('pictures')
+                await supabase.storage.from('pictures')
                   .uploadBinary(path, image.bytes!, fileOptions: FileOptions(upsert: true)).then((onValue){print(onValue);});
                 print('inserting picture info...');
-                await Supabase.instance.client.from('pictures')
+                await supabase.from('pictures')
                   .insert({
-                    'url': Supabase.instance.client.storage.from('pictures').getPublicUrl(path),
+                    'url': supabase.storage.from('pictures').getPublicUrl(path),
                     'repair_id': widget.repair['id'],
                     'reclamation_flag': 1
                   })
@@ -57,38 +58,40 @@ class _ReclamationState extends State<Reclamation> {
               });
               Navigator.of(context).pop(_controller?.text);
             },
-          )
+          ),
+          SizedBox(width: 10,),
         ],
       ),
       body: SafeArea(
-        child: Column(
-          children: [
-            Text('Коментарий:'),
-            TextField(
-              maxLines: null,
-              controller: _controller,
-            ),
-            FutureBuilder(
-              future: fpics,
-              builder: (context, snapshot) {
-                if (!snapshot.hasData) return Text('');
-                final data = snapshot.data!;
-                return Wrap(
-                  children: data.map((pic) => Image.network('${pic['url']}', width: 50, height: 50, fit: BoxFit.cover,)).toList(),
-                );
-              }
-            ),
-            Wrap(
-              children: images.map((image) => Stack(children: [
-                Image.memory(image.bytes!, width: 100, height: 100,),
-                IconButton(onPressed: () {
-                  setState(() {
-                    images.remove(image);
-                  });
-                }, icon: Icon(Icons.delete_forever))
-              ])).toList(),
-            )
-          ],
+        child: SingleChildScrollView(
+          padding: EdgeInsets.symmetric(horizontal: 10),
+          child: Column(
+            spacing: 10,
+            children: [
+              //Text('Коментарий:'),
+              SizedBox(height: 10,),
+              TextField(
+                maxLines: null,
+                controller: _controller,
+                decoration: InputDecoration(
+                  border: OutlineInputBorder(),
+                  hintText: 'Комментарий к рекламации',
+                  labelText: 'Рекламация'
+                ),
+              ),
+              showSmallPicsFromStorage(future: fpics),
+              Wrap(
+                children: images.map((image) => Stack(children: [
+                  Image.memory(image.bytes!, width: 100, height: 100,),
+                  IconButton(onPressed: () {
+                    setState(() {
+                      images.remove(image);
+                    });
+                  }, icon: Icon(Icons.delete_forever))
+                ])).toList(),
+              )
+            ],
+          ),
         )
       ),
       floatingActionButton: FloatingActionButton.extended(

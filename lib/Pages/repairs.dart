@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:mkdrepares/Pages/addrepair.dart';
 import 'package:mkdrepares/Pages/reclamation.dart';
 import 'package:mkdrepares/Widgets/all.dart';
+import 'package:mkdrepares/globals.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 class Repairs extends StatefulWidget {
@@ -17,6 +18,7 @@ class _RepairsState extends State<Repairs> {
   
   Map<String, dynamic> selectedStreet = {};
   Map<String, dynamic> selectedMkd = {};
+  Map<String, dynamic>? actor;
   var sb = Supabase.instance.client;
   late PostgrestFilterBuilder<List<Map<String, dynamic>>> _fMkd;
 
@@ -209,7 +211,33 @@ class _RepairsState extends State<Repairs> {
                           ),
                           Column(
                             children: [
-                              Text(repair['actor'] ?? '')
+                              Text(repair['actor'] ?? ''),
+                              if (repair['actor'].toString().isEmpty) Wrap(
+                                children: [
+                                  activeUser['level'] == 0 ? DropdownButton(
+                                    value: actor,
+                                    items: users.map((user) => DropdownMenuItem(
+                                      value: user,
+                                      child: Text(user['login']),
+                                    )).toList(),
+                                    onChanged: (newUser) {
+                                      setState(() {
+                                        actor = newUser!;
+                                      });
+                                    },
+                                  ) : Text(activeUser['login']),
+                                  InkWell(
+                                    onTap: () {
+                                      setState(() {
+                                        repair['actor'] = actor!['login'];
+                                        sb.from('repairs').update({'actor': repair['actor']}).eq('id', repair['id']).select().then((onValue){print(onValue);});
+                                      });
+                                    },
+                                    child: linkText('Назначить'),
+                                  )
+                                ],
+                              )
+
                             ],
                           ),
                           Column(
