@@ -69,7 +69,7 @@ class _AddRepaireState extends State<AddRepair> {
               TextField(
                 onChanged: (value) => creatorComment = value,
                 minLines: 5,
-                maxLines: 20,
+                maxLines: null,
                 decoration: InputDecoration(
                   labelText: 'Развернутый коментарий'
                 ),

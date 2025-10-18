@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:mkdrepares/Pages/addrepair.dart';
+import 'package:mkdrepares/Pages/reclamation.dart';
 import 'package:mkdrepares/Widgets/all.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -39,7 +40,9 @@ class _RepairsState extends State<Repairs> {
       ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: selectedStreet.isNotEmpty && selectedMkd.isNotEmpty ? () {
-          Navigator.of(context).push(MaterialPageRoute(builder: (context) => AddRepair(mkd: selectedMkd, street: selectedStreet,)));
+          Navigator.of(context).push(MaterialPageRoute(builder: (context) => AddRepair(mkd: selectedMkd, street: selectedStreet,))).then((_){
+            setState(() {});
+          });
         } : null,
         label: Text('Создать ремонт МКД'),
         icon: Icon(Icons.add),
@@ -145,7 +148,10 @@ class _RepairsState extends State<Repairs> {
                       ]
                     ),
                     ...showRepairs.map((repair) {
-                      final _fpics = Supabase.instance.client.from('pictures').select().eq('repair_id', repair['id']);
+                      //load pictures
+                      final fpics = Supabase.instance.client.from('pictures').select().eq('repair_id', repair['id']);
+                      //load 
+
                       return TableRow(
                         decoration: BoxDecoration(border: Border.all(width: 0.5)),
                         children: [
@@ -155,14 +161,12 @@ class _RepairsState extends State<Repairs> {
                             children: [
                               Text(repair['creater_comment'].toString()),
                               FutureBuilder(
-                                future: _fpics,
+                                future: fpics.eq('creator_flag', 1),
                                 builder: (context, snapshot) {
                                   if (!snapshot.hasData) return Container();
                                   final pics = snapshot.data!;
-                                  //final fImage = Supabase.instance.client.storage.from('pictures').url;
                                   return Column(
                                     children: pics.map((pic) => InkWell(
-                                      
                                       onTap: () {
                                         showModalBottomSheet(context: context, builder: (context) {
                                           return Image.network('${pic['url']}', fit: BoxFit.cover,);
@@ -177,7 +181,30 @@ class _RepairsState extends State<Repairs> {
                           ),
                           Column(
                             children: [
+                              InkWell(
+                                onTap: () {
+                                  Navigator.of(context).push<String>(MaterialPageRoute(builder: (context) => Reclamation(repair: repair))).then((rec){setState(() {repair['reclamation'] = rec;});});
+                                },
+                                child: Text('создать/изменить', style: TextStyle(color: Colors.blue, fontStyle: FontStyle.italic)),
+                              ),
                               Text(repair['reclamation'] ?? ''),
+                              FutureBuilder(
+                                future: fpics.eq('reclamation_flag', 1),
+                                builder: (context, snapshot) {
+                                  if (!snapshot.hasData) return Text('');
+                                  final pics = snapshot.data!;
+                                  return Column(
+                                    children: pics.map((pic) => InkWell(
+                                      onTap: () {
+                                        showModalBottomSheet(context: context, builder: (context) {
+                                          return Image.network('${pic['url']}', fit: BoxFit.cover,);
+                                        });
+                                      },
+                                      child: Image.network('${pic['url']}', width: 50, height: 50, fit: BoxFit.cover,))
+                                    ).toList(),
+                                  );
+                                }
+                              )
                             ],
                           ),
                           Column(

@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -35,4 +36,8 @@ Widget showMkdById(int id) {
       );
     },
   );
+}
+
+Widget linkText(String text) {
+  return Text(text, style: TextStyle(color: Colors.blue, fontStyle: FontStyle.italic));
 }
