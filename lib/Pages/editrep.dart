@@ -3,16 +3,17 @@ import 'package:flutter/material.dart';
 import 'package:mkdrepares/Widgets/all.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
-class Reclamation extends StatefulWidget {
+class EditRep extends StatefulWidget {
   final Map<String, dynamic> repair;
+  final String name;
 
-  const Reclamation({required this.repair, super.key});
+  const EditRep({required this.repair, required this.name, super.key});
 
   @override
-  State<Reclamation> createState() => _ReclamationState();
+  State<EditRep> createState() => _ReclamationState();
 }
 
-class _ReclamationState extends State<Reclamation> {
+class _ReclamationState extends State<EditRep> {
 
   bool saving = false;
   TextEditingController? _controller;
@@ -21,16 +22,16 @@ class _ReclamationState extends State<Reclamation> {
 
   @override
   void initState() {
-    _controller = TextEditingController(text: widget.repair['reclamation'] ?? '');
+    _controller = TextEditingController(text: widget.repair[widget.name] ?? '');
     super.initState();
   }
   
   @override
   Widget build(BuildContext context) {
-    final fpics = supabase.from('pictures').select().eq('repair_id', widget.repair['id']).eq('reclamation_flag', 1);
+    final fpics = supabase.from('pictures').select().eq('repair_id', widget.repair['id']).eq('${widget.name}_flag', 1);
     return Scaffold(
       appBar: AppBar(
-        title: Text('Создание / редактирование рекламации'),
+        title: Text('Создание / редактирование'),
         actions: [
           InkWell(
             child: saving ? Text('Идет передача данных...') : linkText('Сохранить'),
@@ -38,7 +39,7 @@ class _ReclamationState extends State<Reclamation> {
               setState(() {
                 saving = true;
               });
-              await Supabase.instance.client.from('repairs').update({'reclamation': _controller?.text}).eq('id', widget.repair['id']).select().count();
+              await supabase.from('repairs').update({widget.name: _controller?.text}).eq('id', widget.repair['id']).select().count();
               for (var image in images) {
                 final path = DateTime.now().microsecondsSinceEpoch.toString();
                 print('uploading images...');
@@ -49,7 +50,7 @@ class _ReclamationState extends State<Reclamation> {
                   .insert({
                     'url': supabase.storage.from('pictures').getPublicUrl(path),
                     'repair_id': widget.repair['id'],
-                    'reclamation_flag': 1
+                    '${widget.name}_flag': 1
                   })
                   .select().count(CountOption.exact).then((onValue){print(onValue.data);});
               }
@@ -75,8 +76,8 @@ class _ReclamationState extends State<Reclamation> {
                 controller: _controller,
                 decoration: InputDecoration(
                   border: OutlineInputBorder(),
-                  hintText: 'Комментарий к рекламации',
-                  labelText: 'Рекламация'
+                  hintText: 'Комментарий',
+                  labelText: widget.name
                 ),
               ),
               showSmallPicsFromStorage(future: fpics),

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:mkdrepares/Pages/addrepair.dart';
-import 'package:mkdrepares/Pages/reclamation.dart';
+import 'package:mkdrepares/Pages/editrep.dart';
 import 'package:mkdrepares/Widgets/all.dart';
 import 'package:mkdrepares/globals.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -18,7 +18,7 @@ class _RepairsState extends State<Repairs> {
   
   Map<String, dynamic> selectedStreet = {};
   Map<String, dynamic> selectedMkd = {};
-  Map<String, dynamic>? actor;
+  Map<String, dynamic>? actor = activeUser;
   var sb = Supabase.instance.client;
   late PostgrestFilterBuilder<List<Map<String, dynamic>>> _fMkd;
 
@@ -28,9 +28,6 @@ class _RepairsState extends State<Repairs> {
 
   @override
   void initState() {
-    //_futureStreets = sb.from('streets').select();
-    //futureMkd.then((f) => mkds = f);
-    //repairs = sb.from('repairs').select().eq('status_id', showStatus);
     super.initState();
   }
   
@@ -137,6 +134,10 @@ class _RepairsState extends State<Repairs> {
                 builder: (context, snapshot) {
                   if (!snapshot.hasData) return Container();
                   final showRepairs = snapshot.data!;
+                  //for dropdown filling ddactors with active user login
+                  for (var repair in showRepairs) {
+                    if (repair['ddactor'].toString().isEmpty) repair['ddactor'] = activeUser['login'];
+                  }///////////
                   return Table(
                     children: [TableRow(
                       decoration: BoxDecoration(color: Colors.grey, border: Border.all(width: 1.5)),
@@ -151,7 +152,7 @@ class _RepairsState extends State<Repairs> {
                     ),
                     ...showRepairs.map((repair) {
                       //load pictures
-                      final fpics = Supabase.instance.client.from('pictures').select().eq('repair_id', repair['id']);
+                      final fpics = sb.from('pictures').select().eq('repair_id', repair['id']);
                       //load 
 
                       return TableRow(
@@ -181,11 +182,11 @@ class _RepairsState extends State<Repairs> {
                               )
                             ],
                           ),
-                          Column(
+                          Wrap(
                             children: [
                               InkWell(
                                 onTap: () {
-                                  Navigator.of(context).push<String>(MaterialPageRoute(builder: (context) => Reclamation(repair: repair))).then((rec){setState(() {repair['reclamation'] = rec;});});
+                                  Navigator.of(context).push<String>(MaterialPageRoute(builder: (context) => EditRep(repair: repair, name: 'reclamation',))).then((rec){setState(() {repair['reclamation'] = rec;});});
                                 },
                                 child: Text('создать/изменить', style: TextStyle(color: Colors.blue, fontStyle: FontStyle.italic)),
                               ),
@@ -214,22 +215,24 @@ class _RepairsState extends State<Repairs> {
                               Text(repair['actor'] ?? ''),
                               if (repair['actor'].toString().isEmpty) Wrap(
                                 children: [
-                                  activeUser['level'] == 0 ? DropdownButton(
-                                    value: actor,
-                                    items: users.map((user) => DropdownMenuItem(
-                                      value: user,
+                                  activeUser['level'] == 0 ? DropdownButton<String>(
+                                    value: repair['ddactor'],
+                                    items: users.map((user) => DropdownMenuItem<String>(
+                                      value: user['login'],
                                       child: Text(user['login']),
                                     )).toList(),
                                     onChanged: (newUser) {
                                       setState(() {
-                                        actor = newUser!;
+                                        //print('before: ${repair['ddactor']}');
+                                        repair['ddactor'] = newUser!;
+                                        //print('after: ${repair['ddactor']}');
                                       });
                                     },
                                   ) : Text(activeUser['login']),
                                   InkWell(
                                     onTap: () {
                                       setState(() {
-                                        repair['actor'] = actor!['login'];
+                                        repair['actor'] = repair['ddactor'];
                                         sb.from('repairs').update({'actor': repair['actor']}).eq('id', repair['id']).select().then((onValue){print(onValue);});
                                       });
                                     },
@@ -240,11 +243,35 @@ class _RepairsState extends State<Repairs> {
 
                             ],
                           ),
-                          Column(
+                          //report
+                          Wrap(
                             children: [
-                              Text(repair['actor_comment'] ?? ''),
+                              InkWell(
+                                onTap: () {
+                                  Navigator.of(context).push<String>(MaterialPageRoute(builder: (context) => EditRep(repair: repair, name: 'report',))).then((rec){setState(() {repair['reclamation'] = rec;});});
+                                },
+                                child: Text('создать/изменить', style: TextStyle(color: Colors.blue, fontStyle: FontStyle.italic)),
+                              ),
+                              Text(repair['report'] ?? ''),
+                              FutureBuilder(
+                                future: fpics.eq('report_flag', 1),
+                                builder: (context, snapshot) {
+                                  if (!snapshot.hasData) return Text('');
+                                  final pics = snapshot.data!;
+                                  return Column(
+                                    children: pics.map((pic) => InkWell(
+                                      onTap: () {
+                                        showModalBottomSheet(context: context, builder: (context) {
+                                          return Image.network('${pic['url']}', fit: BoxFit.cover,);
+                                        });
+                                      },
+                                      child: Image.network('${pic['url']}', width: 50, height: 50, fit: BoxFit.cover,))
+                                    ).toList(),
+                                  );
+                                }
+                              )
                             ],
-                          )
+                          ),
                         ]
                       );
                     })],
