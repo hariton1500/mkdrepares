@@ -31,7 +31,7 @@ class _AddRepaireState extends State<AddRepair> {
             //create repair
             final repair = await supabase.from('repairs').insert({
               'mkd_id': widget.mkd['id'],
-              'status_id': 2,
+              'status_id': 0,
               'creater_comment': creatorComment
             }).select().limit(1).single();
             print('repaire created:\n$repair');
@@ -43,6 +43,7 @@ class _AddRepaireState extends State<AddRepair> {
               final data = await supabase.from('pictures').insert({'url': url, 'repair_id': repair['id']}).select();
               print('pictures created:\n$data');
             }
+            Navigator.of(context).pop(creatorComment);
           }, label: Text('Сохранить'), icon: Icon(Icons.save),)
         ],
       ),

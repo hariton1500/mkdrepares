@@ -2,13 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 Widget showStatusNameById(int id) {
-  final _fStatus = Supabase.instance.client.from('status').select().eq('id', id);
-  return FutureBuilder(future: _fStatus, builder: (context, snapshot) {
-    if (!snapshot.hasData) {return Container();}
+  final fStatus = Supabase.instance.client.from('status').select().eq('id', id).limit(1).single();
+  return FutureBuilder(future: fStatus, builder: (context, snapshot) {
+    if (!snapshot.hasData) return Text('');
     final result = snapshot.data!;
-    return Row(
-      children: result.map((res) => Text(res['name'])).toList(),
-    );
+    return Text(result['name']);
   });
 }
 
@@ -25,7 +23,7 @@ Widget showMkdById(int id) {
           FutureBuilder(
             future: fStreet,
             builder: (context, snapshot) {
-              if (!snapshot.hasData) {return Container();}
+              if (!snapshot.hasData) return Container();
               final streets = snapshot.data!;
               return Text('${streets.first['name']}, ');
             }

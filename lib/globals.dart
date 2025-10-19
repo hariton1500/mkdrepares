@@ -5,7 +5,7 @@ List<Map<String, dynamic>> users = [
   },
   {
     'login': 'hariton',
-    'level': 0
+    'level': 1
   },
   {
     'login': 'evpamex',
@@ -14,3 +14,5 @@ List<Map<String, dynamic>> users = [
 ];
 
 Map<String, dynamic> activeUser = {};
+
+List<String> statuses = ['Внимание', 'Нормально', 'Важно', 'Отложен', 'Завершен'];

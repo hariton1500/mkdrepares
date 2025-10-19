@@ -18,13 +18,14 @@ class _RepairsState extends State<Repairs> {
   
   Map<String, dynamic> selectedStreet = {};
   Map<String, dynamic> selectedMkd = {};
+  Map<int, String> selectedStatus = {}; //int - repair id
   Map<String, dynamic>? actor = activeUser;
   var sb = Supabase.instance.client;
   late PostgrestFilterBuilder<List<Map<String, dynamic>>> _fMkd;
 
   int showStatus = -1;
   late PostgrestFilterBuilder<List<Map<String, dynamic>>> repairs;
-  final _fStatuses = Supabase.instance.client.from('status').select();
+  //final _fStatuses = Supabase.instance.client.from('status').select();
 
   @override
   void initState() {
@@ -50,6 +51,7 @@ class _RepairsState extends State<Repairs> {
         child: SingleChildScrollView(
           padding: EdgeInsets.symmetric(horizontal: 10),
           child: Column(
+            mainAxisAlignment: MainAxisAlignment.start,
             spacing: 10,
             children: [
               Row(
@@ -109,35 +111,30 @@ class _RepairsState extends State<Repairs> {
                   ),
                 ],
               ),
-              FutureBuilder(
-                future: _fStatuses,
-                builder: (context, snapshot) {
-                  if (!snapshot.hasData) return Container();
-                  final statuses = snapshot.data!;
-                  return Wrap(
-                    spacing: 10,
-                    children: statuses.map((status) => InkWell(
-                      onTap: () {
-                        setState(() {
-                          showStatus = status['id'];
-                          print('new showStatus: $showStatus');
-                          repairs = sb.from('repairs').select().eq('status_id', showStatus);
-                        });
-                      },
-                      child: Text(status['name']),
-                    )).toList(),
-                  );
-                }
+              Wrap(
+                spacing: 10,
+                children: statuses.map((status) => InkWell(
+                  onTap: () {
+                    setState(() {
+                      showStatus = statuses.indexOf(status);
+                      print('new showStatus: $showStatus');
+                      repairs = sb.from('repairs').select().eq('status_id', showStatus);
+                    });
+                  },
+                  child: Text(status, style: TextStyle(color: Colors.blue, fontStyle: FontStyle.italic),),
+                )).toList(),
               ),
-              if (showStatus > 0) FutureBuilder(
+              if (showStatus >= 0) FutureBuilder(
                 future: repairs,
                 builder: (context, snapshot) {
                   if (!snapshot.hasData) return Container();
-                  final showRepairs = snapshot.data!;
+                  var showRepairs = snapshot.data!;
                   //for dropdown filling ddactors with active user login
                   for (var repair in showRepairs) {
                     if (repair['ddactor'].toString().isEmpty) repair['ddactor'] = activeUser['login'];
+                    //selectedStatus[repair['id']] = statuses[repair['status_id']];
                   }///////////
+                  //final fStatuses = sb.from('status').select();
                   return Table(
                     children: [TableRow(
                       decoration: BoxDecoration(color: Colors.grey, border: Border.all(width: 1.5)),
@@ -153,13 +150,44 @@ class _RepairsState extends State<Repairs> {
                     ...showRepairs.map((repair) {
                       //load pictures
                       final fpics = sb.from('pictures').select().eq('repair_id', repair['id']);
-                      //load 
-
+                      //load
                       return TableRow(
                         decoration: BoxDecoration(border: Border.all(width: 0.5)),
                         children: [
                           showMkdById(repair['mkd_id']),
-                          showStatusNameById(repair['status_id']),
+                          Column(
+                            mainAxisAlignment: MainAxisAlignment.start,
+                            children: [
+                              //showStatusNameById(repair['status_id']),
+                              Text(statuses[repair['status_id']]),
+                              if (activeUser['level'] == 0) DropdownButton(
+                                value: selectedStatus[repair['id']] ?? statuses[0],
+                                items: statuses.map((status) => DropdownMenuItem(
+                                  value: status,
+                                  child: Text(status),
+                                )).toList(),
+                                onChanged: (newStatus) {
+                                  print('new selected status on repair ${repair['id']} is $newStatus');
+                                  setState(() {
+                                    //repair['status_id'] = statuses.indexOf(newStatus!);
+                                    selectedStatus[repair['id']] = newStatus!;
+                                  });
+                                }
+                              ),
+                              if (activeUser['level'] == 0) InkWell(
+                                child: linkText('Установить'),
+                                onTap: () async {
+                                  repair['status_id'] = statuses.indexOf(selectedStatus[repair['id']]!);
+                                  await sb.from('repairs').update({'status_id': repair['status_id']}).eq('id', repair['id']);
+                                  //showStatus = repair['status_id'];
+                                  repairs = sb.from('repairs').select().eq('status_id', showStatus);
+                                  setState(() {
+                                    
+                                  });
+                                },
+                              )
+                            ],
+                          ),
                           Wrap(
                             children: [
                               Text(repair['creater_comment'].toString()),
@@ -232,7 +260,7 @@ class _RepairsState extends State<Repairs> {
                                   InkWell(
                                     onTap: () {
                                       setState(() {
-                                        repair['actor'] = repair['ddactor'];
+                                        repair['actor'] = activeUser['level'] == 0 ? repair['ddactor'] : activeUser['login'];
                                         sb.from('repairs').update({'actor': repair['actor']}).eq('id', repair['id']).select().then((onValue){print(onValue);});
                                       });
                                     },
