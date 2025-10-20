@@ -3,6 +3,7 @@ import 'package:mkdrepares/Pages/repairs.dart';
 import 'package:mkdrepares/globals.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:universal_html/html.dart' show document;
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -11,6 +12,8 @@ void main() async {
     url: dotenv.env['url']!,
     anonKey: dotenv.env['anon']!,
   );
+  String cookies = document.cookie ?? "";
+  print('cookies:\n$cookies');
   runApp(const MyApp());
 }
 
