@@ -31,37 +31,39 @@ class _ReclamationState extends State<EditRep> {
     final fpics = supabase.from('pictures').select().eq('repair_id', widget.repair['id']).eq('${widget.name}_flag', 1);
     return Scaffold(
       appBar: AppBar(
-        title: Text('Создание / редактирование'),
-        actions: [
-          InkWell(
-            child: saving ? Text('Идет передача данных...') : linkText('Сохранить'),
-            onTap: () async {
-              setState(() {
-                saving = true;
-              });
-              await supabase.from('repairs').update({widget.name: _controller?.text}).eq('id', widget.repair['id']).select().count();
-              for (var image in images) {
-                final path = DateTime.now().microsecondsSinceEpoch.toString();
-                print('uploading images...');
-                await supabase.storage.from('pictures')
-                  .uploadBinary(path, image.bytes!, fileOptions: FileOptions(upsert: true)).then((onValue){print(onValue);});
-                print('inserting picture info...');
-                await supabase.from('pictures')
-                  .insert({
-                    'url': supabase.storage.from('pictures').getPublicUrl(path),
-                    'repair_id': widget.repair['id'],
-                    '${widget.name}_flag': 1
-                  })
-                  .select().count(CountOption.exact).then((onValue){print(onValue.data);});
-              }
-              setState(() {
-                saving = false;
-              });
-              Navigator.of(context).pop(_controller?.text);
-            },
-          ),
-          SizedBox(width: 10,),
-        ],
+        title: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('Создание / редактирование'),
+            InkWell(
+              child: saving ? Text('Идет передача данных...') : linkText('Сохранить'),
+              onTap: () async {
+                setState(() {
+                  saving = true;
+                });
+                await supabase.from('repairs').update({widget.name: _controller?.text}).eq('id', widget.repair['id']).select().count();
+                for (var image in images) {
+                  final path = DateTime.now().microsecondsSinceEpoch.toString();
+                  print('uploading images...');
+                  await supabase.storage.from('pictures')
+                    .uploadBinary(path, image.bytes!, fileOptions: FileOptions(upsert: true)).then((onValue){print(onValue);});
+                  print('inserting picture info...');
+                  await supabase.from('pictures')
+                    .insert({
+                      'url': supabase.storage.from('pictures').getPublicUrl(path),
+                      'repair_id': widget.repair['id'],
+                      '${widget.name}_flag': 1
+                    })
+                    .select().count(CountOption.exact).then((onValue){print(onValue.data);});
+                }
+                setState(() {
+                  saving = false;
+                });
+                Navigator.of(context).pop(_controller?.text);
+              },
+            ),
+          ],
+        ),
       ),
       body: SafeArea(
         child: SingleChildScrollView(

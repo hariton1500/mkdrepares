@@ -40,7 +40,7 @@ class _AddRepaireState extends State<AddRepair> {
               var result = await storage.uploadBinary(path, image.bytes!, fileOptions: FileOptions(upsert: true));
               print('result: $result');
               final url = supabase.storage.from('pictures').getPublicUrl(path);
-              final data = await supabase.from('pictures').insert({'url': url, 'repair_id': repair['id']}).select();
+              final data = await supabase.from('pictures').insert({'url': url, 'repair_id': repair['id'], 'creator_flag': 1}).select();
               print('pictures created:\n$data');
             }
             Navigator.of(context).pop(creatorComment);

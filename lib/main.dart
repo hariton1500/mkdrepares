@@ -1,9 +1,12 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
+import 'package:mkdrepares/Pages/error.dart';
 import 'package:mkdrepares/Pages/repairs.dart';
 import 'package:mkdrepares/globals.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
-import 'package:universal_html/html.dart' show document;
+import 'package:universal_html/html.dart' as html;
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -12,9 +15,21 @@ void main() async {
     url: dotenv.env['url']!,
     anonKey: dotenv.env['anon']!,
   );
-  String cookies = document.cookie ?? "";
-  print('cookies:\n$cookies');
-  runApp(const MyApp());
+  //String cookies = html.document.cookie ?? "";
+  //print('cookies:\n$cookies');
+  try {
+    final request = await html.HttpRequest.request('https://billing.evpanet.com/admin/session_info.php', method: 'GET', withCredentials: true);
+    print('request:\n${request.responseText}');
+    final data = jsonDecode(request.responseText!) as Map<String, dynamic>;
+    print('decoded result:\n$data');
+    activeUser = {'login': data['admin_login'].toString(), 'level': int.parse(data['level'])};
+    runApp(const MyApp());
+  } catch (e) {
+    print('Error:\n$e');
+    //runApp(const ErrorApp());
+    activeUser = {'login': 'ldos', 'level': 0};
+    runApp(MyApp());
+  }
 }
 
 class MyApp extends StatelessWidget {
@@ -28,11 +43,12 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
       ),
-      home: const MyHomePage(title: 'МКД плановые ремонты'),
+      home: const Repairs(),
     );
   }
 }
 
+/*
 class MyHomePage extends StatefulWidget {
   const MyHomePage({super.key, required this.title});
 
@@ -41,6 +57,7 @@ class MyHomePage extends StatefulWidget {
   @override
   State<MyHomePage> createState() => _MyHomePageState();
 }
+
 
 class _MyHomePageState extends State<MyHomePage> {
 
@@ -86,4 +103,4 @@ class _MyHomePageState extends State<MyHomePage> {
       ),
     );
   }
-}
+}*/

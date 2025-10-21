@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:mkdrepares/Pages/addrepair.dart';
 import 'package:mkdrepares/Pages/editrep.dart';
+import 'package:mkdrepares/Pages/repair.dart';
 import 'package:mkdrepares/Widgets/all.dart';
 import 'package:mkdrepares/globals.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -124,6 +125,82 @@ class _RepairsState extends State<Repairs> {
                   child: Text(status, style: TextStyle(color: Colors.blue, fontStyle: FontStyle.italic),),
                 )).toList(),
               ),
+              if (showStatus >= 0)
+                FutureBuilder(
+                  future: repairs,
+                  builder: (context, snapshot) {
+                    if (!snapshot.hasData) return Container();
+                    var showRepairs = snapshot.data!;
+                    for (var repair in showRepairs) {
+                      if (repair['ddactor'].toString().isEmpty) repair['ddactor'] = activeUser['login'];
+                    }
+                    return Column(
+                      spacing: 10,
+                      children: showRepairs.map((repair) {
+                        final fpics = sb.from('pictures').select().eq('repair_id', repair['id']);
+                        return Card.outlined(
+                          child: ListTile(
+                            leading: SizedBox(child: Column(
+                              children: [
+                                Text(statuses[repair['status_id']], style: TextStyle(fontWeight: FontWeight.bold, backgroundColor: statusColors[repair['status_id']])),
+                                if (repair['actor'].toString().isNotEmpty) Text('[${repair['actor']}]')
+                              ],
+                            )),
+                            title: Wrap(
+                              alignment : WrapAlignment.start,
+                              spacing: 10,
+                              children: [
+                                showMkdById(repair['mkd_id']),
+                                InkWell(
+                                  child: linkText('[Рекламация]'),
+                                  onTap: () {
+                                    showBottomSheet(
+                                      context: context,
+                                      builder: (context) => EditRep(repair: repair, name: 'reclamation')
+                                    );
+                                  },
+                                ),
+                                InkWell(
+                                  child: linkText('[Отчет]'),
+                                )
+                              ],
+                            ),
+                            subtitle: Column(
+                              mainAxisAlignment: MainAxisAlignment.start,
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(repair['creater_comment'].toString(), maxLines: 2,),
+                                Divider(),
+                                FutureBuilder(
+                                  future: fpics.eq('creator_flag', 1),
+                                  builder: (context, snapshot) {
+                                    if (!snapshot.hasData) return Container();
+                                    final pics = snapshot.data!;
+                                    return Column(
+                                      children: pics.map((pic) => InkWell(
+                                        onTap: () {
+                                          showModalBottomSheet(context: context, builder: (context) {
+                                            return Image.network('${pic['url']}', fit: BoxFit.cover,);
+                                          });
+                                        },
+                                        child: Image.network('${pic['url']}', width: 50, height: 50, fit: BoxFit.cover,))
+                                      ).toList(),
+                                    );
+                                  }
+                                ),
+                                
+                              ],
+                            ),
+                            trailing: IconButton(
+                              onPressed: () {Navigator.of(context).push(MaterialPageRoute(builder: (context) => Repair(repair: repair)));},
+                              icon: Icon(Icons.navigate_next)
+                            ),
+                          ),
+                        );
+                      }).toList(),
+                    );
+                  },
+                ),
               if (showStatus >= 0) FutureBuilder(
                 future: repairs,
                 builder: (context, snapshot) {
@@ -246,8 +323,8 @@ class _RepairsState extends State<Repairs> {
                                   activeUser['level'] == 0 ? DropdownButton<String>(
                                     value: repair['ddactor'],
                                     items: users.map((user) => DropdownMenuItem<String>(
-                                      value: user['login'],
-                                      child: Text(user['login']),
+                                      value: user,
+                                      child: Text(user),
                                     )).toList(),
                                     onChanged: (newUser) {
                                       setState(() {
