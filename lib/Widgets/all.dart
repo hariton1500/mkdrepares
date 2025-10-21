@@ -35,8 +35,8 @@ Widget showMkdById(int id) {
   );
 }
 
-Widget linkText(String text) {
-  return Text(text, style: TextStyle(color: Colors.blue, fontStyle: FontStyle.italic));
+Widget linkText(String text, {Color? backgroundColor = Colors.white}) {
+  return Text(text, style: TextStyle(backgroundColor: backgroundColor, color: Colors.blue, fontStyle: FontStyle.italic));
 }
 
 Widget showSmallPicsFromStorage({required Future<List<Map<String, dynamic>>>? future}) {

@@ -26,9 +26,9 @@ void main() async {
     runApp(const MyApp());
   } catch (e) {
     print('Error:\n$e');
-    //runApp(const ErrorApp());
-    activeUser = {'login': 'ldos', 'level': 0};
-    runApp(MyApp());
+    runApp(const ErrorApp());
+    //activeUser = {'login': 'ldos', 'level': 5};
+    //runApp(MyApp());
   }
 }
 
