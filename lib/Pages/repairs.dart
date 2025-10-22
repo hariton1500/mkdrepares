@@ -312,7 +312,8 @@ class _RepairsState extends State<Repairs> {
                                   builder: (context, snapshot) {
                                     if (!snapshot.hasData) return Container();
                                     final pics = snapshot.data!;
-                                    return Column(
+                                    return Wrap(
+                                      spacing: 10,
                                       children: pics.map((pic) => InkWell(
                                         onTap: () {
                                           showModalBottomSheet(context: context, builder: (context) {
