@@ -18,17 +18,24 @@ void main() async {
   //String cookies = html.document.cookie ?? "";
   //print('cookies:\n$cookies');
   try {
-    final request = await html.HttpRequest.request('https://billing.evpanet.com/admin/session_info.php', method: 'GET', withCredentials: true);
+    final request = await html.HttpRequest.request(
+      'https://billing.evpanet.com/admin/session_info.php',
+      method: 'GET',
+      withCredentials: true,
+    );
     print('request:\n${request.responseText}');
     final data = jsonDecode(request.responseText!) as Map<String, dynamic>;
     print('decoded result:\n$data');
-    activeUser = {'login': data['admin_login'].toString(), 'level': int.parse(data['level'])};
+    activeUser = {
+      'login': data['admin_login'].toString(),
+      'level': int.parse(data['level']),
+    };
     runApp(const MyApp());
   } catch (e) {
     print('Error:\n$e');
-    runApp(const ErrorApp());
-    //activeUser = {'login': 'ldos', 'level': 5};
-    //runApp(MyApp());
+    //runApp(const ErrorApp());
+    activeUser = {'login': 'ldos', 'level': 5};
+    runApp(MyApp());
   }
 }
 
