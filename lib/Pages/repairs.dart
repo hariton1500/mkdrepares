@@ -5,6 +5,8 @@ import 'package:mkdrepares/Pages/addrepair.dart';
 import 'package:mkdrepares/Pages/editrep.dart';
 import 'package:mkdrepares/Widgets/all.dart';
 import 'package:mkdrepares/globals.dart';
+import 'package:mkdrepares/mkds.dart';
+import 'package:mkdrepares/streets.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:intl/intl.dart';
 
@@ -16,14 +18,14 @@ class Repairs extends StatefulWidget {
 }
 
 class _RepairsState extends State<Repairs> {
-  final _futureStreets = Supabase.instance.client.from('streets').select();
+  //final _futureStreets = Supabase.instance.client.from('streets').select();
 
   Map<String, dynamic> selectedStreet = {};
   Map<String, dynamic> selectedMkd = {};
   Map<int, String> selectedStatus = {}; //int - repair id
   Map<String, dynamic>? actor = activeUser;
   var sb = Supabase.instance.client;
-  late PostgrestFilterBuilder<List<Map<String, dynamic>>> _fMkd;
+  //late PostgrestFilterBuilder<List<Map<String, dynamic>>> _fMkd;
 
   int showStatus = -1;
   late PostgrestFilterBuilder<List<Map<String, dynamic>>> repairs;
@@ -36,6 +38,7 @@ class _RepairsState extends State<Repairs> {
 
   @override
   Widget build(BuildContext context) {
+    print('$selectedStreet, $selectedMkd');
     return Scaffold(
       appBar: AppBar(title: Text('Ремонты:')),
       body: SafeArea(
@@ -49,6 +52,27 @@ class _RepairsState extends State<Repairs> {
               Wrap(
                 spacing: 10,
                 children: [
+                  DropdownButton<Map<String, dynamic>>(
+                    value: selectedStreet.isEmpty ? null : selectedStreet,
+                    hint: Text('Выбор улицы'),
+                    items:
+                        streets
+                            .map(
+                              (street) =>
+                                  DropdownMenuItem<Map<String, dynamic>>(
+                                    value: street,
+                                    child: Text(street['name']),
+                                  ),
+                            )
+                            .toList(),
+                    onChanged: (e) {
+                      setState(() {
+                        selectedMkd = {};
+                        selectedStreet = e!;
+                      });
+                    }
+                  ),
+                  /*
                   FutureBuilder(
                     future: _futureStreets,
                     builder: (context, snapshot) {
@@ -81,8 +105,28 @@ class _RepairsState extends State<Repairs> {
                         },
                       );
                     },
-                  ),
+                  ),*/
                   if (selectedStreet.isNotEmpty)
+                    DropdownButton<Map<String, dynamic>>(
+                      value: selectedMkd.isEmpty ? null : selectedMkd,
+                      hint: Text('Выбор дома'),
+                      items:
+                          mkds.where((mkd) => mkd['street_id'] == selectedStreet['id'])
+                              .map(
+                                (mkd) =>
+                                    DropdownMenuItem<Map<String, dynamic>>(
+                                      value: mkd,
+                                      child: Text(mkd['number']),
+                                    ),
+                              )
+                              .toList(),
+                      onChanged: (e) {
+                        setState(() {
+                          selectedMkd = e!;
+                        });
+                      },
+                    )
+                    /*
                     FutureBuilder(
                       future: _fMkd,
                       builder: (context, snapshot) {
@@ -111,7 +155,7 @@ class _RepairsState extends State<Repairs> {
                           },
                         );
                       },
-                    ),
+                    ),*/
                 ],
               ),
               if (selectedStreet.isNotEmpty && selectedMkd.isNotEmpty)
@@ -170,6 +214,7 @@ class _RepairsState extends State<Repairs> {
                       child: linkText('[По адресу]'),
                       onTap: () {
                         setState(() {
+                          showStatus = 5;
                           repairs = sb
                               .from('repairs')
                               .select()
