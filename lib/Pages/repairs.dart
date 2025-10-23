@@ -200,7 +200,7 @@ class _RepairsState extends State<Repairs> {
                                 .eq('repair_id', repair['id']);
                             return Card.outlined(
                               child: Stack(
-                                alignment: AlignmentGeometry.bottomLeft,
+                                alignment: AlignmentDirectional.bottomStart,
                                 children: [
                                   ListTile(
                                     dense: true,
