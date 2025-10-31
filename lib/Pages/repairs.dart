@@ -579,8 +579,7 @@ class _RepairsState extends State<Repairs> {
                                       children: [
                                         InkWell(
                                           child: Text(
-                                            repair['creater_comment']
-                                                .toString(),
+                                            'Входные данные: ${repair['creater_comment']}',
                                             maxLines: 1,
                                           ),
                                           onTap: () {
@@ -596,48 +595,27 @@ class _RepairsState extends State<Repairs> {
                                             );
                                           },
                                         ),
+                                        showPics(fpics.eq('creator_flag', 1)),
                                         Divider(),
-                                        FutureBuilder(
-                                          future: fpics.eq('creator_flag', 1),
-                                          builder: (context, snapshot) {
-                                            if (!snapshot.hasData) {
-                                              return Container();
-                                            }
-                                            final pics = snapshot.data!;
-                                            return Wrap(
-                                              spacing: 10,
-                                              runSpacing: 5,
-                                              children:
-                                                  pics
-                                                      .map(
-                                                        (pic) => InkWell(
-                                                          onTap: () {
-                                                            showModalBottomSheet(
-                                                              context: context,
-                                                              builder: (
-                                                                context,
-                                                              ) {
-                                                                return Image.network(
-                                                                  '${pic['url']}',
-                                                                  fit:
-                                                                      BoxFit
-                                                                          .cover,
-                                                                );
-                                                              },
-                                                            );
-                                                          },
-                                                          child: Image.network(
-                                                            '${pic['url']}',
-                                                            width: 50,
-                                                            height: 50,
-                                                            fit: BoxFit.cover,
-                                                          ),
-                                                        ),
-                                                      )
-                                                      .toList(),
+                                        InkWell(
+                                          child: Text(
+                                            'Рекламация: ${repair['reclamation']}',
+                                            maxLines: 1,
+                                          ),
+                                          onTap: () {
+                                            showModalBottomSheet(
+                                              context: context,
+                                              builder:
+                                                  (context) => Scaffold(
+                                                    body: Text(
+                                                      repair['creater_comment']
+                                                          .toString(),
+                                                    ),
+                                                  ),
                                             );
                                           },
                                         ),
+                                        showPics(fpics.eq('reclamation_flag', 1)),
                                       ],
                                     ),
                                   ),

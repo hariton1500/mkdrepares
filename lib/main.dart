@@ -34,7 +34,7 @@ void main() async {
   } catch (e) {
     print('Error:\n$e');
     runApp(const ErrorApp());
-    activeUser = {'login': 'ldos', 'level': 5};
+    activeUser = {'login': 'artem', 'level': 10};
     runApp(MyApp());
   }
 }

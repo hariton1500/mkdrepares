@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:mkdrepares/mkds.dart';
+import 'package:mkdrepares/streets.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 Widget showStatusNameById(int id) {
@@ -11,11 +13,20 @@ Widget showStatusNameById(int id) {
 }
 
 Widget showMkdById(int id) {
+  var mkd = mkds.firstWhere((element) => element['id'] == id);
+  var street = streets.firstWhere((element) => element['id'] == mkd['street_id'],);
+  return Row(
+    children: [
+      Text('${street['name']}, '),
+      Text(mkd['number'])
+    ],
+  );
+  /*
   final fMkd = Supabase.instance.client.from('mkd').select().eq('id', id);
   return FutureBuilder(
     future: fMkd,
     builder: (context, snapshot) {
-      if (!snapshot.hasData) {return Container();}
+      if (!snapshot.hasData) {return Text('МКД по id $id не найден :(');}
       final mkds = snapshot.data!;
       final fStreet = Supabase.instance.client.from('streets').select().eq('id', mkds.first['street_id']);
       return Row(
@@ -32,7 +43,7 @@ Widget showMkdById(int id) {
         ],
       );
     },
-  );
+  );*/
 }
 
 Widget linkText(String text, {Color? backgroundColor = Colors.white}) {
@@ -52,4 +63,48 @@ Widget showSmallPicsFromStorage({required Future<List<Map<String, dynamic>>>? fu
     }
   );
 
+}
+
+Widget showPics(Future? future) {
+  return FutureBuilder(
+    future: future,
+    builder: (context, snapshot) {
+      if (!snapshot.hasData) {
+        return Container();
+      }
+      final pics = snapshot.data! as List;
+      return Wrap(
+        spacing: 10,
+        runSpacing: 5,
+        children:
+            pics
+                .map(
+                  (pic) => InkWell(
+                    onTap: () {
+                      showModalBottomSheet(
+                        context: context,
+                        builder: (
+                          context,
+                        ) {
+                          return Image.network(
+                            '${pic['url']}',
+                            fit:
+                                BoxFit
+                                    .cover,
+                          );
+                        },
+                      );
+                    },
+                    child: Image.network(
+                      '${pic['url']}',
+                      width: 50,
+                      height: 50,
+                      fit: BoxFit.cover,
+                    ),
+                  ),
+                )
+                .toList(),
+      );
+    },
+  );
 }
