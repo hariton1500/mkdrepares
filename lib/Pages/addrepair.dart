@@ -46,7 +46,7 @@ class _AddRepaireState extends State<AddRepair> {
       }).select().limit(1).single();
       print('repaire created:\n$repair');
       for (var image in images) {
-        String path = DateTime.now().millisecondsSinceEpoch.toString();
+        String path = DateTime.now().microsecondsSinceEpoch.toString();
         var result = await storage.uploadBinary(path, image.bytes!, fileOptions: FileOptions(upsert: true));
         print('result: $result');
         final url = supabase.storage.from('pictures').getPublicUrl(path);

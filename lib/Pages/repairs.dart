@@ -40,17 +40,21 @@ class _RepairsState extends State<Repairs> {
   Widget build(BuildContext context) {
     print('$selectedStreet, $selectedMkd');
     return Scaffold(
-      appBar: AppBar(title: Text('Ремонты:')),
+      appBar: AppBar(
+        title: Text('Плановые ремонты МКД'),
+        elevation: 2,
+      ),
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: EdgeInsets.symmetric(horizontal: 10),
+          padding: EdgeInsets.all(16),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.start,
             crossAxisAlignment: CrossAxisAlignment.start,
-            spacing: 10,
+            spacing: 16,
             children: [
               Wrap(
-                spacing: 10,
+                spacing: 12,
+                runSpacing: 12,
                 children: [
                   DropdownButton<Map<String, dynamic>>(
                     value: selectedStreet.isEmpty ? null : selectedStreet,
@@ -159,37 +163,43 @@ class _RepairsState extends State<Repairs> {
                 ],
               ),
               if (selectedStreet.isNotEmpty && selectedMkd.isNotEmpty)
-                Wrap(
-                  spacing: 10,
-                  children: [
-                    InkWell(
-                      child: linkText('[Создать плановый ремонт]'),
-                      onTap: () {
-                        Navigator.of(context)
-                            .push(
-                              MaterialPageRoute(
-                                builder:
-                                    (context) => AddRepair(
-                                      mkd: selectedMkd,
-                                      street: selectedStreet,
-                                    ),
-                              ),
-                            )
-                            .then((onValue) {
-                              if (onValue != null) {
-                                setState(() {
-                                  repairs = sb
-                                      .from('repairs')
-                                      .select()
-                                      .eq('status_id', showStatus);
-                                });
-                              }
-                            });
-                      },
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton.icon(
+                    onPressed: () {
+                      Navigator.of(context)
+                          .push(
+                            MaterialPageRoute(
+                              builder:
+                                  (context) => AddRepair(
+                                    mkd: selectedMkd,
+                                    street: selectedStreet,
+                                  ),
+                            ),
+                          )
+                          .then((onValue) {
+                            if (onValue != null) {
+                              setState(() {
+                                repairs = sb
+                                    .from('repairs')
+                                    .select()
+                                    .eq('status_id', showStatus);
+                              });
+                            }
+                          });
+                    },
+                    icon: Icon(Icons.add),
+                    label: Text('Создать плановый ремонт'),
+                    style: ElevatedButton.styleFrom(
+                      padding: EdgeInsets.symmetric(vertical: 16),
+                      backgroundColor: Colors.green.shade600,
+                      foregroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
                     ),
-                  ],
+                  ),
                 ),
-              Divider(),
               Wrap(
                 spacing: 10,
                 runSpacing: 5,
