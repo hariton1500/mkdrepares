@@ -200,60 +200,164 @@ class _RepairsState extends State<Repairs> {
                     ),
                   ),
                 ),
-              Wrap(
-                spacing: 10,
-                runSpacing: 5,
-                children: [
-                  ...statuses.map(
-                    (status) => InkWell(
-                      onTap: () {
-                        setState(() {
-                          showStatus = statuses.indexOf(status);
-                          print('new showStatus: $showStatus');
-                          repairs = sb
-                              .from('repairs')
-                              .select()
-                              .eq('status_id', showStatus);
-                        });
-                      },
-                      child: linkText('[$status]'),
+              // Секция фильтров
+              Container(
+                padding: EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Colors.grey.shade50,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: Colors.grey.shade200),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Icon(Icons.filter_list, color: Colors.grey.shade700, size: 20),
+                        SizedBox(width: 8),
+                        Text(
+                          'Фильтры',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.grey.shade900,
+                          ),
+                        ),
+                      ],
                     ),
-                  ),
-                  if (selectedStreet.isNotEmpty && selectedMkd.isNotEmpty)
-                    InkWell(
-                      child: linkText('[По адресу]'),
-                      onTap: () {
-                        setState(() {
-                          showStatus = 5;
-                          repairs = sb
-                              .from('repairs')
-                              .select()
-                              .eq('mkd_id', selectedMkd['id']);
-                        });
-                      },
+                    SizedBox(height: 12),
+                    Wrap(
+                      spacing: 8,
+                      runSpacing: 8,
+                      children: [
+                        ...statuses.asMap().entries.map(
+                          (entry) {
+                            int index = entry.key;
+                            String status = entry.value;
+                            bool isSelected = showStatus == index;
+                            return FilterChip(
+                              label: Text(status),
+                              selected: isSelected,
+                              onSelected: (selected) {
+                                setState(() {
+                                  showStatus = selected ? index : -1;
+                                  if (selected) {
+                                    repairs = sb
+                                        .from('repairs')
+                                        .select()
+                                        .eq('status_id', showStatus);
+                                  }
+                                });
+                              },
+                              selectedColor: statusColors[index],
+                              backgroundColor: Colors.white,
+                              checkmarkColor: Colors.white,
+                              labelStyle: TextStyle(
+                                fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                                fontSize: 13,
+                              ),
+                              side: BorderSide(
+                                color: isSelected ? Colors.transparent : Colors.grey.shade300,
+                                width: 1,
+                              ),
+                              padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                            );
+                          },
+                        ),
+                        if (selectedStreet.isNotEmpty && selectedMkd.isNotEmpty)
+                          FilterChip(
+                            avatar: Icon(Icons.location_on, size: 16),
+                            label: Text('По адресу'),
+                            selected: showStatus == 5,
+                            onSelected: (selected) {
+                              setState(() {
+                                showStatus = selected ? 5 : -1;
+                                if (selected) {
+                                  repairs = sb
+                                      .from('repairs')
+                                      .select()
+                                      .eq('mkd_id', selectedMkd['id']);
+                                }
+                              });
+                            },
+                            selectedColor: Colors.blue.shade300,
+                            backgroundColor: Colors.white,
+                            checkmarkColor: Colors.white,
+                            labelStyle: TextStyle(
+                              fontWeight: showStatus == 5 ? FontWeight.bold : FontWeight.normal,
+                              fontSize: 13,
+                            ),
+                            side: BorderSide(
+                              color: showStatus == 5 ? Colors.transparent : Colors.grey.shade300,
+                              width: 1,
+                            ),
+                            padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                          ),
+                      ],
                     ),
-                ],
+                  ],
+                ),
               ),
+              // Список ремонтов
               if (showStatus >= 0)
                 FutureBuilder(
                   future: repairs,
                   builder: (context, snapshot) {
-                    if (!snapshot.hasData) return Container();
+                    if (!snapshot.hasData) {
+                      return Center(
+                        child: Padding(
+                          padding: EdgeInsets.all(32),
+                          child: CircularProgressIndicator(),
+                        ),
+                      );
+                    }
                     var showRepairs = snapshot.data!;
                     for (var repair in showRepairs) {
                       if (repair['ddactor'].toString().isEmpty) {
                         repair['ddactor'] = activeUser['login'];
                       }
                     }
+                    if (showRepairs.isEmpty) {
+                      return Container(
+                        padding: EdgeInsets.all(32),
+                        child: Column(
+                          children: [
+                            Icon(Icons.inbox_outlined, size: 64, color: Colors.grey.shade400),
+                            SizedBox(height: 16),
+                            Text(
+                              'Нет ремонтов',
+                              style: TextStyle(
+                                fontSize: 18,
+                                color: Colors.grey.shade600,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                            SizedBox(height: 8),
+                            Text(
+                              'Выберите другой фильтр или создайте новый ремонт',
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                fontSize: 14,
+                                color: Colors.grey.shade500,
+                              ),
+                            ),
+                          ],
+                        ),
+                      );
+                    }
                     return Column(
-                      spacing: 10,
+                      spacing: 12,
                       children:
                           showRepairs.map((repair) {
                             final fpics = sb
                                 .from('pictures')
                                 .select()
                                 .eq('repair_id', repair['id']);
-                            return Card.outlined(
+                            return Card(
+                              elevation: 2,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
                               child: Stack(
                                 alignment: AlignmentDirectional.bottomStart,
                                 children: [
