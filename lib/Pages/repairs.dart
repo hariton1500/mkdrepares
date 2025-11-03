@@ -722,7 +722,7 @@ class _RepairsState extends State<Repairs> {
                                               builder:
                                                   (context) => Scaffold(
                                                     body: Text(
-                                                      repair['creater_comment']
+                                                      repair['reclamation']
                                                           .toString(),
                                                     ),
                                                   ),
